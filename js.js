@@ -1,6 +1,6 @@
 /**
  * author: 殷荣桧
- * time: 2018-8-26 15:35
+ * time: 2018-12-8 16:35
  * title: Flux设计模式的简单实现
  * goal: flux设计的初衷是让你取数据好取，但要改变
  * 数据需要经过flux的一系列操作才行，这样可
@@ -60,29 +60,38 @@ let Flux = {
      */
     Store: function Store() {
         let _itemList = []; // 员工档案信息存放柜
+        let _emit = new Flux.Dispatcher(); // 生成档案信息中心主管（姓名_emit)
         // 一个小员工名为staff_1到人事主管dispatcher这注册，这样dispatcher主管就有一个员工啦
-        dispatcher.register(function staff_1(payload) { 
+        dispatcher.register(function staff_1(payload) {
             // 以下是这个小员工的简历，表明他可以干增加，删除，更新等hr员工该干的活
-            switch (payload.type) { 
+            switch (payload.type) {
                 case 'create': // 创建初始员工（创始人那一批，类似于阿里巴巴的18罗汉之类的）
                     _itemList = [...payload.item];
                     break;
                 case 'add': // 添加一个新的员工档案
                     _itemList.push(payload.item);
                     break;
-                case 'remove':// 删除一个离职员工的档案
+                case 'remove': // 删除一个离职员工的档案
                     _itemList = _itemList.filter(item => item.id != payload.item.id);
                     break;
                 default: // 其他操作
                     break;
             }
-            window.reRender(); // 每次员工操作完了就要更新办事大厅大屏幕上的数据，让大家知道实时结果
+            _emit.dispatch(); // 档案信息中心主管发出通知，让手下注册的员工们开始干活了
         });
 
         return {
             // 获取员工所有的档案信息
             getList: function() {
                 return _itemList;
+            },
+            // 有新的员工到档案信息中心主管（_emit)这注册报到，这样就有人给主管干活啦
+            addEmiter: function(callback) {
+                return _emit.register(callback);
+            },
+            // 干的不爽，从档案信息中心主管这离职了
+            removeEmiter: function(callbackId) {
+                _emit.unregister(callbackId);
             }
         }
     }
@@ -96,6 +105,8 @@ var initStaffs = [
     { id: 1, name: '王健林' },
     { id: 2, name: '褚时健' },
 ];
+
+// 重新把档案信息中心的人事档案渲染到办事大厅大屏幕上
 var reRender = function reRender() {
     appEle = document.querySelector('#app');
     ulEle = document.querySelector('#list');
@@ -106,6 +117,7 @@ var reRender = function reRender() {
     let allStr = allEleArr.join('');
     ulEle.innerHTML = allStr;
 }
+
 var remove = function remove(id) {
     // 整理全离职员工的信息
     let delItem = '';
@@ -126,7 +138,7 @@ var add = function add(event) {
             id: lastId + 1,
             name: itemValue
         }
-    // 整理好了到人事大厅“添加”办事窗口办理新增员工业务
+        // 整理好了到人事大厅“添加”办事窗口办理新增员工业务
     this.action.add(item);
 }
 var dispatcher = new Flux.Dispatcher(); // // 生成一个HR人事主管(主管姓名：dipatcher)（主管员工的增删改查）
@@ -136,6 +148,8 @@ var action = new Flux.Action(); // 生成一个名为action的人事办事大厅
 setTimeout(() => {
     // 将初始员工的信息到人事大厅新建办事窗口办理，以便存放到档案信息中心的档案柜中
     action.create(initStaffs);
+    //  档案信息中心主管这来了一个新员工注册了，他的本领都在 reRender 函数中说明了
+    store.addEmiter(reRender);
     // 代码加载完毕后，点亮办事大厅的所有员工档案信息展示大屏幕
     reRender();
 }, 0);
