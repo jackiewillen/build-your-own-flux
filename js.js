@@ -8,35 +8,12 @@
  */
 
 // Flux对象中存放Flux架构
-let Flux = {
+let Flux = function() {
     /**
-     *（1）Action人事办事（分设：增加档案办事窗口，删除档案办事窗口...）大厅生成器
-     *公司员工的档案信息属于重要信息，非HR工作人员不
-     *能够直接找档案信息中心的人私自修改自己或他人档案，
-     *需要到人事大厅窗口办理,由人事大厅交给人事主管（dispatcher）
-     *再由HR人事办事大厅
-     */
-    Action: function Action() {
-        return {
-            create: function(initData) { // 新建员工办事窗口
-                // 办事大厅登记此项事物后由人事主管(dispatcher)通知手下注册过的员工去干（staff_1好像就会干）
-                dispatcher.dispatch({ type: 'create', item: initData });
-            },
-            add: function(item) { // 添加员工办事窗口
-                // 办事大厅登记此项事物后由人事主管(dispatcher)通知手下注册过的员工去干（staff_1好像就会干）
-                dispatcher.dispatch({ type: 'add', item });
-            },
-            remove: function(item) { // 删除员工办事窗口
-                // 办事大厅登记此项事物后由人事主管(dispatcher)通知手下注册过的员工去干（staff_1好像就会干）
-                dispatcher.dispatch({ type: 'remove', item });
-            }
-        }
-    },
-    /**
-     * （2）主管生成器
+     * （1）主管生成器
      * 生成各个部门的主管（各种主管，包括hr主管，人事档案主管等)
      */
-    Dispatcher: function Dispatcher() {
+    let Dispatcher = function Dispatcher() {
         let _cid = 0; // callbackId
         let _callbacks = [];
         return {
@@ -53,12 +30,36 @@ let Flux = {
                 _callbacks.forEach(callback => callback(payload));
             }
         }
-    },
+    };
+    var dispatcher = new Dispatcher(); // // 生成一个HR人事主管(主管姓名：dipatcher)（主管员工的增删改查）
+    /**
+     *（2）Action人事办事（分设：增加档案办事窗口，删除档案办事窗口...）大厅生成器
+     *公司员工的档案信息属于重要信息，非HR工作人员不
+     *能够直接找档案信息中心的人私自修改自己或他人档案，
+     *需要到人事大厅窗口办理,由人事大厅交给人事主管（dispatcher）
+     *再由HR人事办事大厅
+     */
+    let Action = function Action() {
+        return {
+            create: function(initData) { // 新建员工办事窗口
+                // 办事大厅登记此项事物后由人事主管(dispatcher)通知手下注册过的员工去干（staff_1好像就会干）
+                dispatcher.dispatch({ type: 'create', item: initData });
+            },
+            add: function(item) { // 添加员工办事窗口
+                // 办事大厅登记此项事物后由人事主管(dispatcher)通知手下注册过的员工去干（staff_1好像就会干）
+                dispatcher.dispatch({ type: 'add', item });
+            },
+            remove: function(item) { // 删除员工办事窗口
+                // 办事大厅登记此项事物后由人事主管(dispatcher)通知手下注册过的员工去干（staff_1好像就会干）
+                dispatcher.dispatch({ type: 'remove', item });
+            }
+        }
+    };
     /**
      * （3）档案信息中心生成器
      * 所有员工的信息都存放在档案信息中心
      */
-    Store: function Store() {
+    let Store = function Store() {
         let _itemList = []; // 员工档案信息存放柜
         let _emit = new Flux.Dispatcher(); // 生成档案信息中心主管（姓名_emit)
         // 一个小员工名为staff_1到人事主管dispatcher这注册，这样dispatcher主管就有一个员工啦
@@ -95,10 +96,16 @@ let Flux = {
             }
         }
     }
-}
+    return {
+        Dispatcher,
+        Action,
+        Store,
+    }
+}();
 
 // ==========以下为办事大厅显示屏显示情况控制==============
-
+var store = new Flux.Store(); // 生成一个名为store的档案信息中心
+var action = new Flux.Action(); // 生成一个名为action的人事办事大厅
 // 初始化加载的备忘录列表
 var initStaffs = [
     { id: 0, name: '马云' },
@@ -141,9 +148,6 @@ var add = function add(event) {
         // 整理好了到人事大厅“添加”办事窗口办理新增员工业务
     this.action.add(item);
 }
-var dispatcher = new Flux.Dispatcher(); // // 生成一个HR人事主管(主管姓名：dipatcher)（主管员工的增删改查）
-var store = new Flux.Store(); // 生成一个名为store的档案信息中心
-var action = new Flux.Action(); // 生成一个名为action的人事办事大厅
 
 setTimeout(() => {
     // 将初始员工的信息到人事大厅新建办事窗口办理，以便存放到档案信息中心的档案柜中
